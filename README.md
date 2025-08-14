@@ -24,12 +24,12 @@ R2-Explorer brings a familiar Google Drive-like interface to your Cloudflare R2 
 
 - **👀 File Handling**
   - In-browser file preview
-    - PDF documents
-    - Images
-    - Text files
-    - Markdown
-    - CSV
-    - Logpush files
+  - PDF documents
+  - Images
+  - Text files
+  - Markdown
+  - CSV
+  - Logpush files
   - In-browser file editing
   - Folder upload support
 
@@ -80,3 +80,42 @@ By default this template is **readonly**.
 in order for you to enable editing, just update the `readonly` flag in your `src/index.ts` file.
 
 Its highly recommended that you setup security first, [learn more here](https://r2explorer.com/getting-started/security/).
+
+---
+
+## Custom UI and Multi-tenant security
+
+This fork replaces the packaged dashboard with a modern SPA served from `public/`, and a custom Worker in `src/index.ts` that:
+
+- **Enforces tenant and user scoping** using prefixes: `tenant/{tid}/users/{uid}/` for regular users, `tenant/{tid}/` for tenant-admins, and unrestricted for admins
+- **Requires JWT Bearer auth** with claims: `tid` (tenant id), `uid` (user id), `role` (`user` | `tenant-admin` | `admin`)
+- **Provides REST endpoints** under `/api/*` for listing, uploading, downloading, deleting files, creating folders, and updating metadata
+
+### Configure environment
+
+Set these environment variables/secrets in your Worker:
+
+- `JWT_SECRET`: HS256 secret for verifying Bearer tokens issued by your main app
+- `READONLY`: set to `false` to enable write operations
+
+Example with Wrangler:
+
+```bash
+wrangler secret put JWT_SECRET
+wrangler deploy
+```
+
+### Issuing tokens
+
+Your main app should issue HS256 JWTs with payload like:
+
+```json
+{
+  "tid": "tenant_123",
+  "uid": "user_456",
+  "role": "user",
+  "exp": 1735689600
+}
+```
+
+Send to the Worker via header: `Authorization: Bearer <token>`

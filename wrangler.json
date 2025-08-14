@@ -3,7 +3,7 @@
   "main": "src/index.ts",
   "name": "cf-drive",
   "assets": {
-    "directory": "node_modules/r2-explorer/dashboard",
+    "directory": "public",
     "binding": "ASSETS",
     "html_handling": "auto-trailing-slash",
     "not_found_handling": "single-page-application"
